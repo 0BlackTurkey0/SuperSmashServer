@@ -3,6 +3,7 @@ using System.Net;
 using System.Net.Sockets;
 using System.Text;
 using System.Threading;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -15,14 +16,17 @@ public class ServerThread : MonoBehaviour{
     public int idGenerator;
     private Socket serverSocket, clientSocket;
     private Thread connectThread;
+    private string sendMSG;
 
     public class Client {
         public Socket client;
         public GameObject Cat;
         public Player player;
         private Thread receiveThread;
+        public int commandCount;
+        public string commamd;
 
-        public Client(Socket client, int id) {
+        public Client(Socket client) {
             this.client = client;
         }
         
@@ -38,7 +42,9 @@ public class ServerThread : MonoBehaviour{
         }
 
         private void ReceiveData() {
-            if (client.Connected) {
+            if (client.Connected && player != null) {
+                commamd = "";
+                commandCount = 0;
                 byte[] data = new byte[1024];
                 int len = client.Receive(data);
                 char[] chars = new char[len];
@@ -50,26 +56,38 @@ public class ServerThread : MonoBehaviour{
                     switch (msg) {
                         case "Move_Right":
                             player.moveRight = true;
+                            commamd += "Move_Right ";
+                            commandCount++;
                             break;
 
                         case "Move_Left":
                             player.moveLeft = true;
+                            commamd += "Move_Left ";
+                            commandCount++;
                             break;
 
                         case "Jump":
                             player.jump = true;
+                            commamd += "Jump ";
+                            commandCount++;
                             break;
 
                         case "Light_Attack":
                             player.lightATK = true;
+                            commamd += "Light_Attack ";
+                            commandCount++;
                             break;
 
                         case "Heavy_Attack":
                             player.heavyATK = true;
+                            commamd += "Heavy_Attack ";
+                            commandCount++;
                             break;
 
                         case "Dodge":
                             player.dodge = true;
+                            commamd += "Dodge ";
+                            commandCount++;
                             break;
 
                         default:
@@ -91,6 +109,7 @@ public class ServerThread : MonoBehaviour{
     }
 
     void Update() {
+        SendData();
         int count = 0;
         while (count < clientCount) {
             if (IsConnected(players[count].client)) {
@@ -99,6 +118,7 @@ public class ServerThread : MonoBehaviour{
             }
             else {
                 Destroy(players[count].Cat);
+                players[count].client.Close();
                 players.Remove(players[count]);
                 Debug.Log("Say GoodBye");
                 clientCount--;
@@ -135,7 +155,7 @@ public class ServerThread : MonoBehaviour{
     private void Connect() {
         while (true) {
             clientSocket = serverSocket.Accept();
-            players.Add(new Client(clientSocket, clientCount));
+            players.Add(new Client(clientSocket));
         }
     }
 
@@ -146,9 +166,25 @@ public class ServerThread : MonoBehaviour{
         serverSocket.Close();
     }
 
-    public void SendData(Client target, string sendMSG) {
-        if (target.client.Connected) {
-            target.client.Send(Encoding.ASCII.GetBytes(sendMSG));
+    public void SendData() {
+        sendMSG = (clientCount.ToString() + " ");
+        for (int i = 0; i < clientCount; i++) {
+            sendMSG += (players[i].player.ID.ToString() + " ");
+            sendMSG += (players[i].Cat.transform.position.x.ToString() + " ");
+            sendMSG += (players[i].Cat.transform.position.y.ToString() + " ");
+            if (IsConnected(players[i].client)) {
+                sendMSG += (players[i].commandCount.ToString() + " ");
+                sendMSG += players[i].commamd;
+            }
+            else {
+                sendMSG += "1 Destroy ";
+            }
+
+        }
+        for (int i = 0; i < clientCount; i++) {
+            if (IsConnected(players[i].client))
+                players[i].client.Send(Encoding.ASCII.GetBytes(players[i].player.ID.ToString() + " " + sendMSG));
+            Debug.Log(sendMSG);
         }
     }
 }

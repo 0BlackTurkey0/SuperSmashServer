@@ -43,6 +43,14 @@ public class Player : MonoBehaviour {
     public int horizontalDirection;
 
     public void InputJump () {
+
+        Color rc;
+        if (Physics2D.Raycast(playerCollider2D.bounds.center, Vector2.down, playerCollider2D.bounds.extents.y + 0.02f, groundLayer).collider != null)
+            rc = Color.green;
+        else
+            rc = Color.red;
+        Debug.DrawRay(playerCollider2D.bounds.center, Vector2.down * (playerCollider2D.bounds.extents.y + 0.02f), rc);
+
         if (jump)
             DoJump = true;
         jump = false;
@@ -64,14 +72,6 @@ public class Player : MonoBehaviour {
 
     bool IsGround {
         get {
-            /*
-            Color rc;
-            if (rh.collider != null)
-                rc = Color.green;
-            else
-                rc = Color.red;
-            Debug.DrawRay(playerCollider2D.bounds.center, Vector2.down*(playerCollider2D.bounds.extents.y + 0.02f), rc);
-            */
             return Physics2D.Raycast(playerCollider2D.bounds.center, Vector2.down, playerCollider2D.bounds.extents.y + 0.02f, groundLayer);
         }
     }
