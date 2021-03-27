@@ -201,6 +201,7 @@ public class Player : MonoBehaviour {
             DeathCount++;
             hitRecover = 5f;
             Invincible = 5f;
+            playerSpriteRenderer.flipX = false;
             playerRigidbody2D.gravityScale = 0f;
             playerRigidbody2D.velocity = new Vector2(0f, 0f);
             StartCoroutine(Respawn());
