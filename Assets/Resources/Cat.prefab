@@ -120,6 +120,7 @@ MonoBehaviour:
   ID: -1
   Name: Player
   KnockBackPoint: 0
+  DeathCount: 0
   Invincible: 0
   moveRight: 0
   moveLeft: 0
