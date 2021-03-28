@@ -15,6 +15,7 @@ public class Player : MonoBehaviour {
     public bool jump;
     public bool lightATK, heavyATK;
     public bool dodge;
+    public float dodgeCD;
     public float hitRecover;
 
     [Header("水平速度")]
@@ -52,6 +53,8 @@ public class Player : MonoBehaviour {
             rc = Color.red;
         Debug.DrawRay(playerCollider2D.bounds.center, Vector2.down * (playerCollider2D.bounds.extents.y + 0.02f), rc);
 
+        if (IsGround)
+            jumpCount = 0;
         if (jump)
             DoJump = true;
         jump = false;
@@ -59,9 +62,6 @@ public class Player : MonoBehaviour {
 
     public void Jump () {
         if (DoJump) {
-            if (IsGround) {
-                jumpCount = 0;
-            }
             if (jumpCount < MaxJumpCount) {
                 jumpCount++;
                 playerRigidbody2D.velocity = new Vector2(0, 0);
@@ -105,19 +105,10 @@ public class Player : MonoBehaviour {
     }
 
     public void Attack () {
-        float Offset;
-        if (playerSpriteRenderer.flipX)
-            Offset = -0.03f;
-        else
-            Offset = 0.03f;
         if (lightATK) {
             lightATK = false;
-            GameObject Claw = Instantiate(Resources.Load("Claw") as GameObject, new Vector3(transform.position.x+Offset, transform.position.y, 1), Quaternion.identity);
-            if (playerSpriteRenderer.flipX)
-                Claw.GetComponent<SpriteRenderer>().flipX = true;
-            Collider2D clawCollider2D = Claw.GetComponent<Collider2D>();
-            Physics2D.IgnoreCollision(playerCollider2D, clawCollider2D, true);
-            hitRecover = 0.3f;
+            StartCoroutine(Smash());
+            hitRecover = 0.15f;
         }
         else if (heavyATK) {
             heavyATK = false;
@@ -126,21 +117,40 @@ public class Player : MonoBehaviour {
     }
 
     public void Dodge () {
-        dodge = false;
+        if (dodge && dodgeCD == 0) {
+            dodge = false;
+            dodgeCD = 5f;
+            Invincible = 0.1f;
+            hitRecover = 0.1f;
+        }
     }
 
     public void KnockBack(Vector2 dir) {
         if (Invincible == 0f) {
+            KnockBackPoint += 20;
             hitRecover = 0.1f;
             Invincible = 0.1f;
             playerRigidbody2D.AddForce(dir * KnockBackPoint);
         }
     }
 
+    public IEnumerator Smash() {
+        yield return new WaitForSeconds(0.05f);
+        float Offset;
+        if (playerSpriteRenderer.flipX)
+            Offset = -0.03f;
+        else
+            Offset = 0.03f;
+        GameObject Claw = Instantiate(Resources.Load("Claw") as GameObject, new Vector3(transform.position.x + Offset, transform.position.y, 1), Quaternion.identity);
+        if (playerSpriteRenderer.flipX)
+            Claw.GetComponent<SpriteRenderer>().flipX = true;
+        Collider2D clawCollider2D = Claw.GetComponent<Collider2D>();
+        Physics2D.IgnoreCollision(playerCollider2D, clawCollider2D, true);
+    }
+
     public IEnumerator Respawn() {
         yield return new WaitForSeconds(3f);
         hitRecover = 0f;
-        Invincible = 0f;
         playerRigidbody2D.gravityScale = 1f;
         transform.position = new Vector3(0f, 0f, 1f);
     }
@@ -152,6 +162,7 @@ public class Player : MonoBehaviour {
         playerAnimator = GetComponent<Animator>();
         DeathCount = 0;
         Invincible = 0f;
+        dodgeCD = 0f;
         DoJump = false;
         DoMovement = false;
         moveRight = false;
@@ -171,6 +182,12 @@ public class Player : MonoBehaviour {
             else
                 Invincible = 0f;
         }
+        if (dodgeCD > 0f) {
+            if (dodgeCD - Time.deltaTime > 0f)
+                dodgeCD -= Time.deltaTime;
+            else
+                dodgeCD = 0f;
+        }
         if (hitRecover == 0f) {
             InputMovement();
             InputJump();
@@ -183,12 +200,13 @@ public class Player : MonoBehaviour {
             jump = false;
             lightATK = false;
             heavyATK = false;
-            dodge = false;
             if (hitRecover - Time.deltaTime > 0f)
                 hitRecover -= Time.deltaTime;
             else
                 hitRecover = 0f;
         }
+        if (dodgeCD != 0)
+            dodge = false;
     }
 
     void FixedUpdate () {
@@ -201,6 +219,7 @@ public class Player : MonoBehaviour {
             DeathCount++;
             hitRecover = 5f;
             Invincible = 5f;
+            KnockBackPoint = 100;
             playerSpriteRenderer.flipX = false;
             playerRigidbody2D.gravityScale = 0f;
             playerRigidbody2D.velocity = new Vector2(0f, 0f);

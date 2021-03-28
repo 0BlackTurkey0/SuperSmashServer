@@ -45,7 +45,7 @@ public class ServerThread : MonoBehaviour{
             if (client.Connected && player != null) {
                 commamd = "";
                 commandCount = 0;
-                byte[] data = new byte[1024];
+                byte[] data = new byte[4096];
                 int len = client.Receive(data);
                 char[] chars = new char[len];
                 Decoder decoder = Encoding.ASCII.GetDecoder();
@@ -184,7 +184,7 @@ public class ServerThread : MonoBehaviour{
         for (int i = 0; i < clientCount; i++) {
             if (IsConnected(players[i].client))
                 players[i].client.Send(Encoding.ASCII.GetBytes(players[i].player.ID.ToString() + " " + sendMSG));
-            Debug.Log(sendMSG);
+            //Debug.Log(sendMSG);
         }
     }
 }
