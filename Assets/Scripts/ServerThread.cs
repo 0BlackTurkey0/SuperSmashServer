@@ -6,17 +6,22 @@ using System.Threading;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.UI;
 
 public class ServerThread : MonoBehaviour{
     
     public string ip;
     public int port;
+    public bool connected;
     public List<Client> players;
     public int clientCount;
     public int idGenerator;
     private Socket serverSocket, clientSocket;
     private Thread connectThread;
     private string sendMSG;
+
+    public GameObject canvas;
+    public InputField input;
 
     public class Client {
         public Socket client;
@@ -99,12 +104,15 @@ public class ServerThread : MonoBehaviour{
     }
 
     void Awake() {
+        connected = false;
         serverSocket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
     }
 
     void Start() {
         clientCount = 0;
         idGenerator = 0;
+        canvas = GameObject.Find("Canvas");
+        input = canvas.transform.GetChild(1).gameObject.GetComponent<InputField>();
         players = new List<Client>();
     }
 
@@ -186,5 +194,12 @@ public class ServerThread : MonoBehaviour{
                 players[i].client.Send(Encoding.ASCII.GetBytes(players[i].player.ID.ToString() + " " + sendMSG));
             //Debug.Log(sendMSG);
         }
+    }
+
+    public void InputBindIP(string ip) {
+        this.ip = ip;
+        Listen();
+        connected = true;
+        input.gameObject.SetActive(false);
     }
 }
