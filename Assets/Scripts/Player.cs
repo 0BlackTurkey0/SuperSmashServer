@@ -7,6 +7,7 @@ public class Player : MonoBehaviour {
     public int ID;
     public string Name;
     public int KnockBackPoint;
+    public bool dead;
     public int DeathCount;
 
     public float Invincible;
@@ -153,6 +154,7 @@ public class Player : MonoBehaviour {
         hitRecover = 0f;
         playerRigidbody2D.gravityScale = 1f;
         transform.position = new Vector3(0f, 0f, 1f);
+        dead = false;
     }
 
     void Start () {
@@ -160,6 +162,7 @@ public class Player : MonoBehaviour {
         playerRigidbody2D = GetComponent<Rigidbody2D>();
         playerSpriteRenderer = GetComponent<SpriteRenderer>();
         playerAnimator = GetComponent<Animator>();
+        dead = false;
         DeathCount = 0;
         Invincible = 0f;
         dodgeCD = 0f;
@@ -215,7 +218,8 @@ public class Player : MonoBehaviour {
     }
 
     void OnTriggerEnter2D(Collider2D collision) {
-        if (collision.gameObject.layer == 11) {
+        if (collision.gameObject.layer == 11 && !dead) {
+            dead = true;
             DeathCount++;
             hitRecover = 5f;
             Invincible = 5f;
