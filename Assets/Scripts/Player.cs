@@ -154,6 +154,7 @@ public class Player : MonoBehaviour {
         hitRecover = 0f;
         playerRigidbody2D.gravityScale = 1f;
         transform.position = new Vector3(0f, 0f, 1f);
+        yield return new WaitForSeconds(1f);
         dead = false;
     }
 
