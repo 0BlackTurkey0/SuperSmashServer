@@ -20,7 +20,7 @@ public class Server : MonoBehaviour {
         serverThread = GetComponent<ServerThread>();
     }
 
-	void Update() {
+    void Update() {
         if (serverThread.connected) {
             if (!init) {
                 serverThread.StartConnect();
