@@ -23,6 +23,11 @@ public class ServerThread : MonoBehaviour{
     public GameObject canvas;
     public InputField input;
 
+    /*
+    * 各個Client接收TCP
+    * 
+    *
+    */
     public class Client {
         public Socket client;
         public GameObject Cat;
